@@ -8,7 +8,7 @@ RUN apk add --no-cache binutils make \
     && strip vpnclient vpncmd
 
 FROM alpine:3.20
-RUN apk add --no-cache tinyproxy microsocks
+RUN apk add --no-cache tinyproxy microsocks iproute2 musl-utils
 COPY --from=builder /src/vpnclient/vpnclient /usr/local/bin/vpnclient
 COPY --from=builder /src/vpnclient/vpncmd /usr/local/bin/vpncmd
 COPY --from=builder /src/vpnclient/hamcore.se2 /usr/share/softether/hamcore.se2

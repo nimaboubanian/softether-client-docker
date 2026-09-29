@@ -5,18 +5,22 @@ tinyproxy (HTTP) + microsocks (SOCKS5) running over the VPN tunnel.
 
 ## Quick start
 
-1. Copy and edit credentials:
-   ```sh
-   cp .env.example .env
-   $EDITOR .env
-   ```
-2. Build and start:
-   ```sh
-   docker compose up -d --build
-   ```
-3. Use the proxies:
-   - HTTP: `localhost:8888`
-   - SOCKS5: `localhost:1080`
+The supplied `client-softether.vpn` profile is mounted read-only and imported
+on startup. Build and start:
+
+```sh
+docker compose up -d --build
+```
+
+Use the proxies at `localhost:8888` (HTTP) and `localhost:1080` (SOCKS5).
+The container creates the SoftEther virtual adapter, connects the profile,
+obtains its tunnel address via DHCP, and routes proxy egress through the VPN.
+
+To use environment credentials instead, copy `.env.example` to `.env` and set
+`SE_HOST`, `SE_HUB`, `SE_USER`, and `SE_PASSWORD`. Complete environment
+credentials take priority over the profile.
+
+`client-softether.vpn` contains authentication data and is excluded from Git.
 
 ## Networking
 
@@ -25,18 +29,10 @@ gets a static IP `172.30.0.10`. Other services on the same network reach the
 proxies at `vpn-client:8888` (HTTP) and `vpn-client:1080` (SOCKS5). The host
 reaches them on `localhost`.
 
-## Mounting a pre-baked config
-
-To skip the `AccountCreate` step, generate the config once on the host with
-`vpncmd`, then mount it:
-
-```sh
-docker compose cp ./vpn_client.config vpn-client:/vpnclient/vpn_client.config
-docker compose exec vpn-client vpncmd /CLIENT localhost /CMD AccountConnect myacct
-```
-
-The container's entrypoint will see `/vpnclient/vpn_client.config` on the
-`vpnconfig` volume and skip the env-var setup.
+The VPN server must provide DHCP with a default gateway on the virtual network;
+the entrypoint fails before starting the proxies if the VPN connection or
+tunnel route is unavailable. The VPN server's route is pinned through Docker's
+network so the tunnel transport stays reachable after the default route changes.
 
 ## Logs
 
@@ -44,13 +40,14 @@ The container's entrypoint will see `/vpnclient/vpn_client.config` on the
 docker compose logs -f vpn-client
 ```
 
-Prefixes `[vpncmd]`, `[tinyproxy]`, `[microsocks]` are added by the entrypoint.
+Use `docker compose logs` for entrypoint, SoftEther, and SOCKS output. Tinyproxy
+writes to `/var/log/tinyproxy.log` inside the container.
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `Dockerfile` | Multi-stage build: links `vpnclient`/`vpncmd` from prebuilt archive, copies runtime bits + proxies |
-| `compose.yaml` | `vpn-net` bridge network, service with `NET_ADMIN` + `/dev/net/tun`, host port mapping, env, `vpnconfig` volume |
-| `entrypoint.sh` | Starts `vpnclient`, configures/connects account from env or mounted config, starts proxies |
+| `compose.yaml` | `vpn-net` bridge network, `NET_ADMIN` + `/dev/net/tun`, host port mapping, optional env overrides, profile and `vpnconfig` mounts |
+| `entrypoint.sh` | Creates the virtual adapter, imports/connects the profile or configures an env account, gets a tunnel lease, starts proxies |
 | `tinyproxy.conf` | HTTP proxy bound to `0.0.0.0:8888`, allows RFC1918 + loopback |

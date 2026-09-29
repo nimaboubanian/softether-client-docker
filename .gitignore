@@ -1,3 +1,4 @@
 .git
 .env
 softether-vpnclient-*.tar.gz
+client-softether.vpn

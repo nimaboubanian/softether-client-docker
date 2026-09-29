@@ -20,16 +20,16 @@ services:
     ports:
       - "8888:8888"
       - "1080:1080"
-    env_file:
-      - .env
+    environment:
+      SE_HOST: ${SE_HOST:-}
+      SE_PORT: ${SE_PORT:-443}
+      SE_HUB: ${SE_HUB:-}
+      SE_USER: ${SE_USER:-}
+      SE_PASSWORD: ${SE_PASSWORD:-}
     volumes:
       - vpnconfig:/vpnclient
+      - ./client-softether.vpn:/client-softether.vpn:ro
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8888 >/dev/null 2>&1 || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
 volumes:
   vpnconfig:
