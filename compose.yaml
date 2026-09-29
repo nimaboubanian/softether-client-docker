@@ -1,0 +1,35 @@
+networks:
+  vpn-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+services:
+  vpn-client:
+    build: .
+    image: softether-vpn-client:latest
+    container_name: softether-vpn-client
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    networks:
+      vpn-net:
+        ipv4_address: 172.30.0.10
+    ports:
+      - "8888:8888"
+      - "1080:1080"
+    env_file:
+      - .env
+    volumes:
+      - vpnconfig:/vpnclient
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8888 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  vpnconfig:

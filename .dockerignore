@@ -1,0 +1,5 @@
+softether-vpnclient-*.tar.gz
+.git
+.gitignore
+.env
+*.md
