@@ -12,6 +12,9 @@ on startup. Build and start:
 docker compose up -d --build
 ```
 
+Build steps use the host network to fetch Alpine packages; the running service
+still uses the dedicated `vpn-net` bridge.
+
 Use the proxies at `localhost:8888` (HTTP) and `localhost:1080` (SOCKS5).
 The container creates the SoftEther virtual adapter, connects the profile,
 obtains its tunnel address via DHCP, and routes proxy egress through the VPN.

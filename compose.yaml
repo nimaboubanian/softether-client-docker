@@ -7,7 +7,11 @@ networks:
 
 services:
   vpn-client:
-    build: .
+    build:
+      context: .
+      network: host
+      entitlements:
+        - network.host
     image: softether-vpn-client:latest
     container_name: softether-vpn-client
     cap_add:
