@@ -1,7 +1,7 @@
-FROM gcc:alpine AS builder
+FROM alpine:3.20 AS builder
 WORKDIR /src
 COPY softether-vpnclient-v4.44-9807-rtm-2025.04.16-linux-x64-64bit.tar.gz .
-RUN apk add --no-cache binutils make \
+RUN apk add --no-cache gcc make binutils musl-dev \
     && tar xzf softether-vpnclient-v4.44-9807-rtm-2025.04.16-linux-x64-64bit.tar.gz \
     && cd vpnclient \
     && make main \
