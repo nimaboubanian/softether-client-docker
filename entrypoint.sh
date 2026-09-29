@@ -35,7 +35,7 @@ connect_vpn() {
         status=$(vpncmd /CLIENT localhost /CMD AccountStatusGet "$account_name" 2>/dev/null || true)
         if printf '%s\n' "$status" | grep -Eq 'Session Status[[:space:]]*\|[[:space:]]*Connection Completed'; then
             echo "[entrypoint] VPN connected; requesting tunnel address"
-            udhcpc -i "$vpn_interface" -q -n
+            dhclient -4 -1 "$vpn_interface"
             vpn_gateway=$(ip -4 route show default dev "$vpn_interface" | awk '$1 == "default" && $2 == "via" { print $3; exit }')
             if [ -z "$vpn_gateway" ]; then
                 echo "[entrypoint] VPN DHCP did not install a default route" >&2
@@ -95,7 +95,7 @@ echo "[entrypoint] starting tinyproxy on :8888"
 tinyproxy -c /etc/tinyproxy/tinyproxy.conf 2>&1 | sed 's/^/[tinyproxy] /' &
 
 echo "[entrypoint] starting SOCKS5 proxy on :1080"
-sockd -f /etc/sockd.conf 2>&1 | sed 's/^/[sockd] /' &
+danted -f /etc/danted.conf 2>&1 | sed 's/^/[danted] /' &
 
 trap 'vpnclient stop; kill %1 %2 2>/dev/null; exit 0' TERM INT
 wait

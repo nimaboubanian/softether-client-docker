@@ -2,4 +2,13 @@
 .gitignore
 .env
 client-softether.vpn
+softether-vpnclient-*.tar.gz
 *.md
+build/softether/*
+!build/softether/vpnclient
+!build/softether/vpncmd
+!build/softether/hamcore.se2
+!build/softether/ReadMeFirst_License.txt
+!build/softether/ReadMeFirst_Important_Notices_en.txt
+!build/softether/ReadMeFirst_Important_Notices_ja.txt
+!build/softether/ReadMeFirst_Important_Notices_cn.txt

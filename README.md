@@ -6,14 +6,18 @@ tinyproxy (HTTP) + Dante (SOCKS5) running over the VPN tunnel.
 ## Quick start
 
 The supplied `client-softether.vpn` profile is mounted read-only and imported
-on startup. Build and start:
+on startup. Link SoftEther on the host, then build and start:
 
 ```sh
+sh ./build-softether.sh
 docker compose up -d --build
 ```
 
-Build steps use the host network to fetch Alpine packages; the running service
-still uses the dedicated `vpn-net` bridge.
+Host build prerequisites are `gcc`, `make`, `binutils`, and Linux x86_64. The
+generated artifacts stay in the ignored `build/` directory. Compose uses host
+networking only while installing Ubuntu packages; the running service stays on
+the dedicated `vpn-net` bridge. Run `sh ./test-host-build.sh` to verify the
+host-built runtime artifacts.
 
 Use the proxies at `localhost:8888` (HTTP) and `localhost:1080` (SOCKS5).
 The container creates the SoftEther virtual adapter, connects the profile,
@@ -50,8 +54,9 @@ writes to `/var/log/tinyproxy.log` inside the container.
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Multi-stage build: links `vpnclient`/`vpncmd` from prebuilt archive, copies runtime bits + proxies |
+| `build-softether.sh` | Links the precompiled SoftEther libraries with the host's glibc toolchain and stages runtime artifacts |
+| `Dockerfile` | Installs Ubuntu 26.04 runtime packages and copies the host-built SoftEther artifacts |
 | `compose.yaml` | `vpn-net` bridge network, `NET_ADMIN` + `/dev/net/tun`, host port mapping, optional env overrides, profile and `vpnconfig` mounts |
 | `entrypoint.sh` | Creates the virtual adapter, imports/connects the profile or configures an env account, gets a tunnel lease, starts proxies |
 | `tinyproxy.conf` | HTTP proxy bound to `0.0.0.0:8888`, allows RFC1918 + loopback |
-| `sockd.conf` | Dante SOCKS5 listener on `:1080`, restricted to local clients and VPN egress |
+| `danted.conf` | Dante SOCKS5 listener on `:1080`, restricted to local clients and VPN egress |
