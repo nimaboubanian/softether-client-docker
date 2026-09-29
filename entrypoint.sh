@@ -19,8 +19,8 @@ if [ -n "${SE_HOST:-}" ] && [ -n "${SE_HUB:-}" ] && [ -n "${SE_USER:-}" ] && [ -
         /PASSWORD:"$SE_PASSWORD" 2>&1 | sed 's/^/[vpncmd] /'
     vpncmd /CLIENT localhost /CMD AccountConnect "$SE_USER" 2>&1 | sed 's/^/[vpncmd] /'
     echo "[entrypoint] waiting for tunnel..."
-    for i in 1 2 3 4 5 6 7 8 9 10; do
-        if vpncmd /CLIENT localhost /CMD AccountStatusGet "$SE_USER" 2>/dev/null | grep -q "SessionStatus.*Connected"; then
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        if vpncmd /CLIENT localhost /CMD AccountStatusGet "$SE_USER" 2>/dev/null | grep -q "Connected"; then
             echo "[entrypoint] VPN connected"
             break
         fi
