@@ -94,8 +94,8 @@ fi
 echo "[entrypoint] starting tinyproxy on :8888"
 tinyproxy -c /etc/tinyproxy/tinyproxy.conf 2>&1 | sed 's/^/[tinyproxy] /' &
 
-echo "[entrypoint] starting microsocks on :1080"
-microsocks -p 1080 2>&1 | sed 's/^/[microsocks] /' &
+echo "[entrypoint] starting SOCKS5 proxy on :1080"
+sockd -f /etc/sockd.conf 2>&1 | sed 's/^/[sockd] /' &
 
 trap 'vpnclient stop; kill %1 %2 2>/dev/null; exit 0' TERM INT
 wait

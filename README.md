@@ -1,7 +1,7 @@
 # SoftEther VPN Client — Docker
 
 Containerized [SoftEther VPN Client](https://www.softether.org/) v4.44 with
-tinyproxy (HTTP) + microsocks (SOCKS5) running over the VPN tunnel.
+tinyproxy (HTTP) + Dante (SOCKS5) running over the VPN tunnel.
 
 ## Quick start
 
@@ -51,3 +51,4 @@ writes to `/var/log/tinyproxy.log` inside the container.
 | `compose.yaml` | `vpn-net` bridge network, `NET_ADMIN` + `/dev/net/tun`, host port mapping, optional env overrides, profile and `vpnconfig` mounts |
 | `entrypoint.sh` | Creates the virtual adapter, imports/connects the profile or configures an env account, gets a tunnel lease, starts proxies |
 | `tinyproxy.conf` | HTTP proxy bound to `0.0.0.0:8888`, allows RFC1918 + loopback |
+| `sockd.conf` | Dante SOCKS5 listener on `:1080`, restricted to local clients and VPN egress |
