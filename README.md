@@ -5,8 +5,9 @@ tinyproxy (HTTP) + Dante (SOCKS5) running over the VPN tunnel.
 
 ## Quick start
 
-The supplied `client-softether.vpn` profile is mounted read-only and imported
-on startup. Link SoftEther on the host, then build and start:
+Drop one or more `*.vpn` SoftEther client profiles into `vpn-profiles/`
+(the first one found is imported on startup). Link SoftEther on the host,
+then build and start:
 
 ```sh
 sh ./build-softether.sh
@@ -21,13 +22,15 @@ host-built runtime artifacts.
 
 Use the proxies at `localhost:8888` (HTTP) and `localhost:1080` (SOCKS5).
 The container creates the SoftEther virtual adapter, connects the profile,
-obtains its tunnel address via DHCP, and routes proxy egress through the VPN.
+obtains its tunnel address via DHCP, replaces the container's default route
+through the VPN, and keeps reconnecting until the daemon stops or the
+container is stopped.
 
 To use environment credentials instead, copy `.env.example` to `.env` and set
 `SE_HOST`, `SE_HUB`, `SE_USER`, and `SE_PASSWORD`. Complete environment
 credentials take priority over the profile.
 
-`client-softether.vpn` contains authentication data and is excluded from Git.
+`vpn-profiles/*.vpn` contain authentication data and are excluded from Git.
 
 ## Networking
 
@@ -36,10 +39,12 @@ gets a static IP `172.30.0.10`. Other services on the same network reach the
 proxies at `vpn-client:8888` (HTTP) and `vpn-client:1080` (SOCKS5). The host
 reaches them on `localhost`.
 
-The VPN server must provide DHCP with a default gateway on the virtual network;
-the entrypoint fails before starting the proxies if the VPN connection or
-tunnel route is unavailable. The VPN server's route is pinned through Docker's
-network so the tunnel transport stays reachable after the default route changes.
+The VPN server must provide a DHCP lease on the virtual network (the
+entrypoint derives the tunnel gateway from the assigned IP and replaces the
+container's default route through it). The VPN server's transport IP is pinned
+through Docker's network so the tunnel stays reachable after the default route
+changes. The container keeps reconnecting until the daemon stops or the
+container is stopped.
 
 ## Logs
 

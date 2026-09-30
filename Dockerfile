@@ -6,6 +6,7 @@ RUN sed -i 's/^Components: .*/Components: main universe/' /etc/apt/sources.list.
     && rm -rf /var/lib/apt/lists/*
 COPY build/softether/vpnclient /usr/local/bin/vpnclient
 COPY build/softether/vpncmd /usr/local/bin/vpncmd
+COPY build/softether/hamcore.se2 /usr/local/bin/hamcore.se2
 COPY build/softether/hamcore.se2 /usr/share/softether/hamcore.se2
 COPY build/softether/ReadMeFirst_License.txt /usr/share/softether/
 COPY build/softether/ReadMeFirst_Important_Notices_en.txt /usr/share/softether/

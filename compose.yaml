@@ -32,7 +32,7 @@ services:
       SE_PASSWORD: ${SE_PASSWORD:-}
     volumes:
       - vpnconfig:/vpnclient
-      - ./client-softether.vpn:/client-softether.vpn:ro
+      - ./vpn-profiles:/vpn-profiles:ro
     restart: unless-stopped
 
 volumes:

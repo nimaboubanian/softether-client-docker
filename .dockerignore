@@ -2,6 +2,7 @@
 .gitignore
 .env
 client-softether.vpn
+vpn-profiles/
 softether-vpnclient-*.tar.gz
 *.md
 build/softether/*
