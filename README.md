@@ -3,7 +3,35 @@
 Containerized [SoftEther VPN Client](https://www.softether.org/) v4.44 with
 tinyproxy (HTTP) + Dante (SOCKS5) running over the VPN tunnel.
 
-## Quick start
+## Requirements
+
+**Host (for building the image):**
+
+| Requirement | Why |
+|---|---|
+| Linux x86_64 | Pre-compiled SoftEther archive is x86_64-only |
+| Docker Engine + Compose plugin | Build and run |
+| `gcc`, `make`, `binutils` (`strip`) | Compile the SoftEther binary against the host glibc |
+| glibc toolchain | Ubuntu 26.04 runtime image requires glibc, not musl |
+
+**Host (for running the published image, no build needed):**
+
+| Requirement | Why |
+|---|---|
+| Docker Engine + Compose plugin | Run the container |
+| `/dev/net/tun` available | SoftEther virtual adapter |
+| Ports `8888` and `1080` free on the host | HTTP and SOCKS5 proxy listeners |
+| Outbound TCP `443` (or whatever the SoftEther server uses) | Reach the VPN server |
+
+**Server side:**
+
+The SoftEther server must be reachable from the container's bridge network and
+provide a DHCP lease on the virtual network. The container derives the tunnel
+gateway from the assigned IP and replaces its default route through it. Full-
+tunnel NAT on the server side is required for proxy egress to appear as the
+server's public IP.
+
+## Quick start (build from source)
 
 Drop one or more `*.vpn` SoftEther client profiles into `vpn-profiles/`
 (the first one found is imported on startup). Link SoftEther on the host,
@@ -14,11 +42,9 @@ sh ./build-softether.sh
 docker compose up -d --build
 ```
 
-Host build prerequisites are `gcc`, `make`, `binutils`, and Linux x86_64. The
-generated artifacts stay in the ignored `build/` directory. Compose uses host
-networking only while installing Ubuntu packages; the running service stays on
-the dedicated `vpn-net` bridge. Run `sh ./test-host-build.sh` to verify the
-host-built runtime artifacts.
+Compose uses host networking only while installing Ubuntu packages; the
+running service stays on the dedicated `vpn-net` bridge. Run
+`sh ./test-host-build.sh` to verify the host-built runtime artifacts.
 
 Use the proxies at `localhost:8888` (HTTP) and `localhost:1080` (SOCKS5).
 The container creates the SoftEther virtual adapter, connects the profile,
@@ -31,6 +57,57 @@ To use environment credentials instead, copy `.env.example` to `.env` and set
 credentials take priority over the profile.
 
 `vpn-profiles/*.vpn` contain authentication data and are excluded from Git.
+
+## Using the published image (Docker Hub)
+
+Pull from Docker Hub instead of building locally:
+
+```sh
+docker pull <your-dockerhub-username>/softether-vpn-client:latest
+```
+
+Create a working directory anywhere:
+
+```sh
+mkdir softether-client && cd softether-client
+```
+
+Download `compose.yaml` from the GitHub repo (or copy it locally). Edit the
+`image:` line so it matches the published tag:
+
+```yaml
+image: <your-dockerhub-username>/softether-vpn-client:latest
+```
+
+Drop your profile in:
+
+```sh
+mkdir vpn-profiles
+cp /path/to/your-profile.vpn vpn-profiles/main.vpn
+```
+
+Start:
+
+```sh
+docker compose up -d
+```
+
+Verify proxy egress:
+
+```sh
+curl -x http://localhost:8888 https://api.ipify.org
+curl --socks5-hostname localhost:1080 https://api.ipify.org
+```
+
+Both should return the VPN server's public IP.
+
+### Using environment credentials instead of a profile file
+
+```sh
+cp .env.example .env
+$EDITOR .env   # set SE_HOST, SE_HUB, SE_USER, SE_PASSWORD
+docker compose up -d
+```
 
 ## Networking
 
