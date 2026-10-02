@@ -116,9 +116,18 @@ elif [ -d /vpn-profiles ]; then
         echo "[entrypoint] no .vpn profile found in /vpn-profiles" >&2
         exit 1
     fi
-    profile=$(ls /vpn-profiles/*.vpn | head -1)
-    if [ "$(ls /vpn-profiles/*.vpn | wc -l)" -gt 1 ]; then
-        echo "[entrypoint] multiple .vpn profiles found; using '$profile'" >&2
+    if [ -n "${VPN_PROFILE:-}" ]; then
+        profile="/vpn-profiles/${VPN_PROFILE}.vpn"
+        if [ ! -f "$profile" ]; then
+            echo "[entrypoint] VPN_PROFILE='${VPN_PROFILE}' but '${profile}' not found in /vpn-profiles" >&2
+            exit 1
+        fi
+        echo "[entrypoint] VPN_PROFILE='${VPN_PROFILE}' -> '$profile'"
+    else
+        profile=$(ls /vpn-profiles/*.vpn | head -1)
+        if [ "$(ls /vpn-profiles/*.vpn | wc -l)" -gt 1 ]; then
+            echo "[entrypoint] multiple .vpn profiles found; using '$profile'" >&2
+        fi
     fi
     cp "$profile" ./client-softether.vpn
     space_escape="\$20"

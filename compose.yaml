@@ -30,6 +30,7 @@ services:
       SE_HUB: ${SE_HUB:-}
       SE_USER: ${SE_USER:-}
       SE_PASSWORD: ${SE_PASSWORD:-}
+      VPN_PROFILE: ${VPN_PROFILE:-}
     volumes:
       - vpnconfig:/vpnclient
       - ./vpn-profiles:/vpn-profiles:ro

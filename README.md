@@ -109,6 +109,20 @@ $EDITOR .env   # set SE_HOST, SE_HUB, SE_USER, SE_PASSWORD
 docker compose up -d
 ```
 
+### Picking a specific profile when several are mounted
+
+If more than one `.vpn` file is in `vpn-profiles/`, set `VPN_PROFILE` to the
+filename **without** the `.vpn` extension:
+
+```sh
+echo 'VPN_PROFILE=DEFAULT-main' >> .env
+docker compose up -d
+```
+
+The entrypoint will use `/vpn-profiles/DEFAULT-main.vpn` and exit if it is
+not present. With `VPN_PROFILE` unset, the first file alphabetically is used
+as before.
+
 ## Routing all host traffic through the tunnel (tun2proxy)
 
 The container exposes two proxies: HTTP on `:8888` and SOCKS5 on `:1080`. Apps
