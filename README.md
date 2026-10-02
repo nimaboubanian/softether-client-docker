@@ -123,6 +123,57 @@ The entrypoint will use `/vpn-profiles/DEFAULT-main.vpn` and exit if it is
 not present. With `VPN_PROFILE` unset, the first file alphabetically is used
 as before.
 
+## Verifying the connection
+
+Three checks: which profile was imported, which host the transport is going
+through, and which IP appears on the public internet.
+
+```sh
+# 1. Profile picked up at startup
+sudo docker logs --tail 30 softether-vpn-client | grep -E "VPN_PROFILE|multiple .vpn"
+# → "[entrypoint] VPN_PROFILE='DEFAULT-main' -> '/vpn-profiles/DEFAULT-main.vpn'"
+# or "[entrypoint] multiple .vpn profiles found; using '/vpn-profiles/...vpn'"
+```
+
+```sh
+# 2. Transport hop — the host the VPN session is actually going to
+sudo docker exec softether-vpn-client vpncmd /CLIENT localhost /CMD AccountList
+```
+
+`AccountList` prints a table with these columns:
+
+| Column | Meaning |
+|---|---|
+| `VPN Connection Setting Name` | Account label from the `.vpn` file. Often contains spaces (e.g. `DEFAULT - main`). |
+| `Status` | `Connected`, `Connecting`, or `Retrying` (keepalive mid-reconnect) |
+| `VPN Server Hostname` | The transport endpoint — your bridge IP if `VPN_PROFILE=DEFAULT-main`, the SoftEther server IP if a direct profile is loaded |
+| `Virtual Hub` | The hub name the session authenticated against |
+| `Virtual Network Adapter Name` | The virtual NIC the tunnel uses |
+
+```sh
+# 3. Egress IP — what the public internet sees
+curl -x http://localhost:8888 https://api.ipify.org
+curl --socks5-hostname localhost:1080 https://api.ipify.org
+```
+
+Both calls should return the same IP — the public IP of the SoftEther server
+that applied NAT on the tunneled traffic. If you went through a bridge, that
+IP is the server behind the bridge, not the bridge itself.
+
+### Quoting account names with spaces
+
+`vpncmd` account labels commonly contain spaces (the `.vpn` file encodes them
+as `$20`, which SoftEther expands on import). Pass the label quoted so the
+shell doesn't split it:
+
+```sh
+sudo docker exec softether-vpn-client vpncmd /CLIENT localhost /CMD "AccountStatusGet DEFAULT - main"
+```
+
+Without quotes the shell splits on the space and `vpncmd` only sees
+`DEFAULT`, returning error 36 ("The specified VPN Connection Setting does
+not exist") — even though `AccountList` shows the account is loaded.
+
 ## Routing all host traffic through the tunnel (tun2proxy)
 
 The container exposes two proxies: HTTP on `:8888` and SOCKS5 on `:1080`. Apps
