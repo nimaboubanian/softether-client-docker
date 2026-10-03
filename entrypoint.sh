@@ -37,6 +37,24 @@ pin_vpn_server_route() {
     fi
     docker_gateway=$(ip -4 route show default | awk '$1 == "default" && $2 == "via" { print $3; exit }')
     ip -4 route replace "$server_ip/32" via "$docker_gateway" dev eth0
+    ip -4 route del default via "$docker_gateway" dev eth0 2>/dev/null || true
+}
+
+ensure_vpn_route() {
+    vpn_interface=$(ip -4 -o link show 2>/dev/null | awk -F': ' '/vpn_/ {print $2; exit}')
+    [ -n "$vpn_interface" ] || return 1
+    if ip -4 route show default | grep -q "dev $vpn_interface"; then
+        return 0
+    fi
+    vpn_ip=$(ip -4 -o addr show dev "$vpn_interface" 2>/dev/null | awk '{print $4}' | head -1 | cut -d/ -f1)
+    if [ -z "$vpn_ip" ]; then
+        dhclient -4 -1 "$vpn_interface" >/dev/null 2>&1 || true
+        vpn_ip=$(ip -4 -o addr show dev "$vpn_interface" 2>/dev/null | awk '{print $4}' | head -1 | cut -d/ -f1)
+    fi
+    [ -n "$vpn_ip" ] || return 1
+    vpn_gateway=$(echo "$vpn_ip" | awk -F. '{printf "%s.%s.%s.1", $1, $2, $3}')
+    echo "[entrypoint] default route via $vpn_gateway dev $vpn_interface"
+    ip -4 route replace default via "$vpn_gateway" dev "$vpn_interface"
 }
 
 connect_vpn() {
@@ -52,18 +70,7 @@ connect_vpn() {
         status=$(vpncmd /CLIENT localhost /CMD AccountStatusGet "$account_name" 2>/dev/null || true)
         if printf '%s\n' "$status" | grep -Eq 'Session Status[[:space:]]*\|[[:space:]]*Connection Completed'; then
             echo "[entrypoint] VPN connected; requesting tunnel address"
-            vpn_interface=$(ip -4 -o link show 2>/dev/null | awk -F': ' '/vpn_/ {print $2; exit}')
-            if [ -z "$vpn_interface" ]; then
-                echo "[entrypoint] no vpn_* interface appeared after connect" >&2
-                return 1
-            fi
-            dhclient -4 -1 "$vpn_interface" >/dev/null 2>&1 || true
-            vpn_ip=$(ip -4 -o addr show dev "$vpn_interface" 2>/dev/null | awk '{print $4}' | head -1 | cut -d/ -f1)
-            if [ -n "$vpn_ip" ]; then
-                vpn_gateway=$(echo "$vpn_ip" | awk -F. '{printf "%s.%s.%s.1", $1, $2, $3}')
-                echo "[entrypoint] default route via $vpn_gateway dev $vpn_interface"
-                ip -4 route replace default via "$vpn_gateway" dev "$vpn_interface"
-            fi
+            ensure_vpn_route || true
             return 0
         fi
         sleep 2
@@ -84,6 +91,8 @@ vpn_keepalive() {
         status=$(vpncmd /CLIENT localhost /CMD AccountStatusGet "$account_name" 2>/dev/null || true)
         if ! printf '%s\n' "$status" | grep -Eq 'Session Status[[:space:]]*\|[[:space:]]*Connection Completed'; then
             vpncmd /CLIENT localhost /CMD AccountConnect "$account_name" >/dev/null 2>&1 || true
+        else
+            ensure_vpn_route || true
         fi
         sleep 5
     done

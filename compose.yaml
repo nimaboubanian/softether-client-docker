@@ -22,8 +22,8 @@ services:
       vpn-net:
         ipv4_address: 172.30.0.10
     ports:
-      - "8888:8888"
-      - "1080:1080"
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:1080:1080"
     environment:
       SE_HOST: ${SE_HOST:-}
       SE_PORT: ${SE_PORT:-443}
