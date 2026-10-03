@@ -2,7 +2,7 @@ FROM ubuntu:26.04
 RUN sed -i 's/^Components: .*/Components: main universe/' /etc/apt/sources.list.d/ubuntu.sources \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ca-certificates dante-server iproute2 isc-dhcp-client mawk tinyproxy \
+        ca-certificates curl dante-server iproute2 isc-dhcp-client mawk netcat-openbsd tinyproxy \
     && rm -rf /var/lib/apt/lists/*
 COPY build/softether/vpnclient /usr/local/bin/vpnclient
 COPY build/softether/vpncmd /usr/local/bin/vpncmd
@@ -13,9 +13,10 @@ COPY build/softether/ReadMeFirst_Important_Notices_en.txt /usr/share/softether/
 COPY build/softether/ReadMeFirst_Important_Notices_ja.txt /usr/share/softether/
 COPY build/softether/ReadMeFirst_Important_Notices_cn.txt /usr/share/softether/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY vpn-status.sh /usr/local/bin/vpn-status.sh
 COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 COPY danted.conf /etc/danted.conf
-RUN chmod +x /usr/local/bin/entrypoint.sh \
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/vpn-status.sh \
     && mkdir -p /vpnclient /var/log/softether
 WORKDIR /vpnclient
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

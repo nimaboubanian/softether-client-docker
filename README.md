@@ -160,6 +160,23 @@ Both calls should return the same IP — the public IP of the SoftEther server
 that applied NAT on the tunneled traffic. If you went through a bridge, that
 IP is the server behind the bridge, not the bridge itself.
 
+### One-shot status report
+
+For a single shot covering profile, daemon PIDs, vpncmd session state,
+session list, interfaces, routes, DNS, egress IPs through both proxies,
+TCP/UDP sockets by state, a 10 MB speed test through SOCKS, and proxy
+liveness:
+
+```sh
+sudo docker exec softether-vpn-client /usr/local/bin/vpn-status.sh
+```
+
+Re-run as often as you like. To watch continuously:
+
+```sh
+sudo docker exec softether-vpn-client sh -c 'while sleep 5; do /usr/local/bin/vpn-status.sh; done'
+```
+
 ### Quoting account names with spaces
 
 `vpncmd` account labels commonly contain spaces (the `.vpn` file encodes them
