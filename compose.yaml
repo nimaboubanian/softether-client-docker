@@ -19,7 +19,13 @@ services:
     volumes:
       - vpnconfig:/vpnclient
       - ./vpn-profiles:/vpn-profiles:ro
+    networks:
+      - vpndogs
     restart: unless-stopped
 
 volumes:
   vpnconfig:
+
+networks:
+  vpndogs:
+    name: vpndogs
