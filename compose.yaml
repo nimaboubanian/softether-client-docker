@@ -1,28 +1,13 @@
-networks:
-  vpn-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/24
-
 services:
   vpn-client:
-    build:
-      context: .
-      network: host
-      entitlements:
-        - network.host
+    build: .
     image: softether-vpn-client:latest
     container_name: softether-vpn-client
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun
-    networks:
-      vpn-net:
-        ipv4_address: 172.30.0.10
     ports:
-      - "127.0.0.1:8888:8888"
       - "127.0.0.1:1080:1080"
     environment:
       SE_HOST: ${SE_HOST:-}
