@@ -20,7 +20,7 @@ Drop a `*.vpn` SoftEther client profile into `vpn-profiles/` (the first one
 found is imported on startup), then:
 
 ```sh
-sh ./build-softether.sh
+sh ./scripts/build-softether.sh
 docker compose up -d --build
 ```
 
@@ -60,11 +60,11 @@ curl -x http://localhost:1080 https://api.ipify.org
 curl --socks5-hostname localhost:1080 https://api.ipify.org
 ```
 
-Both should return the VPN server's public IP. One-shot status report
-(daemons, session, routes, egress IP):
+Both should return the VPN server's public IP. One-shot diagnostics
+report (daemons, session, egress IP):
 
 ```sh
-docker exec softether-vpn-client /usr/local/bin/vpn-status.sh
+docker exec softether-vpn-client report.sh
 ```
 
 Logs: `docker compose logs -f vpn-client`. Account names containing spaces
@@ -74,12 +74,12 @@ must be quoted for `vpncmd`, e.g. `AccountStatusGet "DEFAULT - main"`.
 
 | File | Purpose |
 |---|---|
-| `build-softether.sh` | Links the pre-compiled SoftEther libs, stages runtime artifacts in `build/softether/` |
-| `test-host-build.sh` | Verifies host-built artifacts |
+| `scripts/build-softether.sh` | Links the pre-compiled SoftEther libs, stages runtime artifacts in `build/softether/` |
+| `scripts/test-host-build.sh` | Verifies host-built artifacts |
 | `Dockerfile` | Ubuntu 26.04 runtime + host-built SoftEther binaries + pinned gost release |
 | `compose.yaml` | NET_ADMIN + `/dev/net/tun`, host port mapping, env overrides, profile mount |
-| `entrypoint.sh` | Adapter setup, connect, tunnel default route, proxy, keepalive |
-| `vpn-status.sh` | Compact one-shot status report |
+| `scripts/entrypoint.sh` | Adapter setup, connect, tunnel default route, proxy, keepalive |
+| `scripts/report.sh` | Compact one-shot diagnostics report (`docker exec ... report.sh`) |
 
 SoftEther license files (`ReadMeFirst_License.txt`,
 `ReadMeFirst_Important_Notices_*.txt`) are preserved in the image for

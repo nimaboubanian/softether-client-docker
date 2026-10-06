@@ -5,7 +5,7 @@ Containerize the pre-compiled SoftEther VPN client v4.44 (Linux x86_64).
 ## Layout
 - `softether-vpnclient-v4.44-9807-rtm-2025.04.16-linux-x64-64bit.tar.gz` — source artifact.
 - Extracts to `vpnclient/`: pre-built static libs (`code/*.a`, `lib/*.a`), `Makefile`, license docs.
-- `build-softether.sh` runs `make main` on the host and stages runtime files under ignored `build/softether/`.
+- `scripts/build-softether.sh` runs `make main` on the host and stages runtime files under ignored `build/softether/`.
 
 ## Build
 - Host build needs `gcc`, `make`, `binutils` (`ranlib`/`strip`).
@@ -25,7 +25,7 @@ Containerize the pre-compiled SoftEther VPN client v4.44 (Linux x86_64).
 - **Preserve license files** (`ReadMeFirst_License.txt`, `ReadMeFirst_Important_Notices_*.txt`) in the image for redistribution.
 
 ## Verification
-- Host artifact check: `sh ./test-host-build.sh`.
+- Host artifact check: `sh ./scripts/test-host-build.sh`.
 - Host runtime smoke test: from `build/softether/`, `./vpnclient start && sleep 1 && ./vpnclient stop` should exit clean.
 
 ## Debugging lessons (general)

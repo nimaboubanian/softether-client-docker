@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-root=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
+root=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 archive="$root/softether-vpnclient-v4.44-9807-rtm-2025.04.16-linux-x64-64bit.tar.gz"
 output="$root/build/softether"
 tmp=$(mktemp -d)
