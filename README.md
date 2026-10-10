@@ -46,12 +46,26 @@ echo 'VPN_PROFILE=DEFAULT-main' >> .env
 
 ## Using a published image
 
-```sh
-docker pull <user>/softether-vpn-client:latest
+Images are published to `ghcr.io/nimaboubanian/softether-vpn-client` and
+`nimaboubanian/softether-vpn-client` (Docker Hub) on every push to `main`,
+with tags `latest`, `sha-<commit>`, and `v<version>` on `v*` tags.
+
+Skip the local build entirely — replace the `build: .` line in `compose.yaml`
+with:
+
+```yaml
+image: nimaboubanian/softether-vpn-client:latest
 ```
 
-Point `image:` at the tag, drop a profile into `vpn-profiles/`, and
-`docker compose up -d`.
+then drop a profile into `vpn-profiles/` and:
+
+```sh
+docker compose up -d
+```
+
+To publish your own images: fork the repo, add the `DOCKERHUB_USERNAME`
+variable and `DOCKERHUB_TOKEN` secret in GitHub repo settings, create the
+Docker Hub repository, and push. GitHub Actions does the rest.
 
 ## Verify
 
