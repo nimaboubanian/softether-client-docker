@@ -75,7 +75,6 @@ must be quoted for `vpncmd`, e.g. `AccountStatusGet "DEFAULT - main"`.
 | File | Purpose |
 |---|---|
 | `scripts/build-softether.sh` | Links the pre-compiled SoftEther libs, stages runtime artifacts in `build/softether/` |
-| `scripts/test-host-build.sh` | Verifies host-built artifacts |
 | `Dockerfile` | Ubuntu 26.04 runtime + host-built SoftEther binaries + pinned gost release |
 | `compose.yaml` | NET_ADMIN + `/dev/net/tun`, host port mapping, env overrides, profile mount, shared `vpndogs` network |
 | `scripts/entrypoint.sh` | Adapter setup, connect, tunnel default route, proxy, keepalive |
