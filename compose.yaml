@@ -7,8 +7,8 @@ services:
       - NET_ADMIN
     devices:
       - /dev/net/tun
-    ports:
-      - "127.0.0.1:1080:1080"
+    expose:
+      - "1082"
     environment:
       SE_HOST: ${SE_HOST:-}
       SE_PORT: ${SE_PORT:-443}

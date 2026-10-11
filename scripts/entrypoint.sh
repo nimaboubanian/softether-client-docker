@@ -145,8 +145,8 @@ else
     exit 1
 fi
 
-echo "[entrypoint] starting gost multi-protocol proxy on :1080 (HTTP + SOCKS)"
-gost -L :1080 2>&1 | sed 's/^/[gost] /' &
+echo "[entrypoint] starting gost multi-protocol proxy on :1082 (HTTP + SOCKS)"
+gost -L :1082 2>&1 | sed 's/^/[gost] /' &
 
 if [ -n "${account_name:-}" ] || [ -n "${SE_USER:-}" ]; then
     echo "[entrypoint] starting VPN keepalive (unlimited reconnect)"

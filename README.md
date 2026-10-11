@@ -24,8 +24,9 @@ sh ./scripts/build-softether.sh
 docker compose up -d --build
 ```
 
-Proxy: `localhost:1080` — one port, both HTTP and SOCKS5 (gost auto-detects
-per connection). The container creates the virtual adapter, connects, gets a
+Proxy: `softether-vpn-client:1082` on the `vpndogs` network (not published to
+the host) — one port, both HTTP and SOCKS5 (gost auto-detects per
+connection). The container creates the virtual adapter, connects, gets a
 DHCP lease, replaces its default route through the VPN, and reconnects until
 stopped.
 
@@ -70,8 +71,8 @@ Docker Hub repository, and push. GitHub Actions does the rest.
 ## Verify
 
 ```sh
-curl -x http://localhost:1080 https://api.ipify.org
-curl --socks5-hostname localhost:1080 https://api.ipify.org
+docker run --rm --network vpndogs curlimages/curl -x http://softether-vpn-client:1082 https://api.ipify.org
+docker run --rm --network vpndogs curlimages/curl --socks5-hostname softether-vpn-client:1082 https://api.ipify.org
 ```
 
 Both should return the VPN server's public IP. One-shot diagnostics
@@ -90,7 +91,7 @@ must be quoted for `vpncmd`, e.g. `AccountStatusGet "DEFAULT - main"`.
 |---|---|
 | `scripts/build-softether.sh` | Links the pre-compiled SoftEther libs, stages runtime artifacts in `build/softether/` |
 | `Dockerfile` | Ubuntu 26.04 runtime + host-built SoftEther binaries + pinned gost release |
-| `compose.yaml` | NET_ADMIN + `/dev/net/tun`, host port mapping, env overrides, profile mount, shared `vpndogs` network |
+| `compose.yaml` | NET_ADMIN + `/dev/net/tun`, env overrides, profile mount, shared `vpndogs` network |
 | `scripts/entrypoint.sh` | Adapter setup, connect, tunnel default route, proxy, keepalive |
 | `scripts/report.sh` | Compact one-shot diagnostics report (`docker exec ... report.sh`) |
 

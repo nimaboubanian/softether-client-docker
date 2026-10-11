@@ -25,6 +25,6 @@ else
 fi
 
 echo
-echo "== Egress IP (via proxy 127.0.0.1:1080) =="
-ip=$(curl -s --max-time 10 --proxy http://127.0.0.1:1080 'https://api.ipify.org' 2>/dev/null) \
+echo "== Egress IP (via proxy 127.0.0.1:1082) =="
+ip=$(curl -s --max-time 10 --proxy http://127.0.0.1:1082 'https://api.ipify.org' 2>/dev/null) \
     && echo "  $ip" || echo "  unreachable"
