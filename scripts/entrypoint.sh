@@ -92,11 +92,21 @@ vpn_keepalive() {
 vpnclient start
 sleep 1
 
-if [ -n "${SE_HOST:-}${SE_HUB:-}${SE_USER:-}${SE_PASSWORD:-}" ]; then
-    : "${SE_HOST:?SE_HOST is required for environment-based VPN setup}"
-    : "${SE_HUB:?SE_HUB is required for environment-based VPN setup}"
-    : "${SE_USER:?SE_USER is required for environment-based VPN setup}"
-    : "${SE_PASSWORD:?SE_PASSWORD is required for environment-based VPN setup}"
+# A .vpn profile is the minimal path: drop a file in /vpn-profiles and the
+# first one is used (VPN_PROFILE only picks which). SE_* is the alternative for
+# users without a profile, so require all of it — a half-filled SE_* set must not
+# shadow a profile that would otherwise just work.
+have_profile=0
+if [ -d /vpn-profiles ] && ls /vpn-profiles/*.vpn >/dev/null 2>&1; then
+    have_profile=1
+fi
+se_complete=0
+if [ -n "${SE_HOST:-}" ] && [ -n "${SE_HUB:-}" ] && [ -n "${SE_USER:-}" ] && [ -n "${SE_PASSWORD:-}" ]; then
+    se_complete=1
+fi
+
+if [ $se_complete = 1 ]; then
+    [ $have_profile = 1 ] && echo "[entrypoint] SE_* complete - using env-based setup, ignoring /vpn-profiles"
     SE_PORT="${SE_PORT:-443}"
     echo "[entrypoint] configuring account '$SE_USER' -> ${SE_HOST}:${SE_PORT} hub '$SE_HUB'"
     ensure_nic VPN
@@ -109,12 +119,10 @@ if [ -n "${SE_HOST:-}${SE_HUB:-}${SE_USER:-}${SE_PASSWORD:-}" ]; then
     vpncmd /CLIENT localhost /CMD AccountPasswordSet "$SE_USER" \
         /PASSWORD:"$SE_PASSWORD" /TYPE:standard
     connect_vpn "$SE_USER" "$SE_HOST" VPN || true
-elif [ -d /vpn-profiles ]; then
+elif [ $have_profile = 1 ]; then
+    [ -n "${SE_HOST:-}${SE_HUB:-}${SE_USER:-}${SE_PASSWORD:-}${SE_PORT:-}" ] \
+        && echo "[entrypoint] partial SE_* ignored - using a .vpn profile from /vpn-profiles"
     set -- /vpn-profiles/*.vpn
-    if [ ! -f "$1" ]; then
-        echo "[entrypoint] no .vpn profile found in /vpn-profiles" >&2
-        exit 1
-    fi
     if [ -n "${VPN_PROFILE:-}" ]; then
         profile="/vpn-profiles/${VPN_PROFILE}.vpn"
         if [ ! -f "$profile" ]; then
@@ -141,7 +149,9 @@ elif [ -d /vpn-profiles ]; then
     vpncmd /CLIENT localhost /CMD AccountImport client-softether.vpn
     connect_vpn "$account_name" "$server_host" "$nic_name" || true
 else
-    echo "[entrypoint] no VPN profile or complete SE_* credentials configured" >&2
+    echo "[entrypoint] no VPN configured — need EITHER:" >&2
+    echo "[entrypoint]   a) a *.vpn file in /vpn-profiles (VPN_PROFILE only needed to pick which one), OR" >&2
+    echo "[entrypoint]   b) all four of SE_HOST + SE_PORT (optional, 443) + SE_HUB + SE_USER + SE_PASSWORD" >&2
     exit 1
 fi
 
